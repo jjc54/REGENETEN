@@ -1,0 +1,461 @@
+---
+title: |
+  ![](images/0.%20AndrewsREF_Horizontal05-01.png){fig-align="left" width="273"}  \  
+    \  
+    REGENETEN Interim Analysis
+subtitle: "Principal Investigator: Matthew Mai, M.D."
+author: "Joshua J. Cook, B.S."
+date: "today"
+---
+
+## Study Information
+
+**Full Title:** Retrospective, Multi-center, Comparative Cohort to Demonstrate Safety of REGENETEN for Endoscopic and Open Hip Abductor Repair.
+
+**Purpose:** The purpose of this study is to retrospectively collect data to evaluate post-operative pain following partial-/full-thickness hip abductor tendon tear repair with and without REGENETEN (and Bone Anchors). REGENETEN will be evaluated as both a primary treatment for partial-thickness tears and an adjunctive treatment option for partial- and full-thickness tears. Secondary objectives will include the evaluation of patient function and complications following tendon repair.
+
+**Study Design:** Retrospective, multi-center comparative cohort. This study includes a retrospective chart review and a patient questionnaire to evaluate pain, function, and post-operative complications. The study is no greater than minimal risk, as it only includes retrospective chart reviews and a telephone/electronic (through REDCap, see section 12) questionnaire. No study interventions or study visits are required.
+
+**Objectives and Endpoints:**
+
+-   OBJECTIVE 1: To compare post-operative pain when using the Bone Anchors to affix the Collagen Implant vs conventional surgical treatment (defined as hip abductor tendon repair without REGENETEN and Bone Anchors) during repair of partial- and full-thickness tears in hip abductor tendons at final follow-up (minimum 18-months), as assessed by the Numeric Rating Scale (NRS). 
+
+-   ENDPOINT 1:  Group average NRS pain score recorded via telephone survey (minimum 18-months elapsed post-operative time) 
+
+-   OBJECTIVE 2:To compare the post-operative function and complications when using the Bone Anchor to affix the Collagen Implant vs conventional surgical treatment during repair of partial- and full-thickness tears in hip abductor tendons at final follow-up (18-months minimum), as measured by the HOOSGlobal Survey and recorded adverse events/complications. 
+
+-   ENDPOINT 2: Group average HOOSGlobal scores collected via telephone survey and all peri- and post-operative complications collected from the medical record until the final follow-up (minimum 18-months elapsed post-operative time). 
+
+-   OBJECTIVE 3: To evaluate the independent influence of patient demographics, surgical variables and pre-existing conditions on final pain and function scores. 
+
+-   ENDPOINT 3: Statistical evaluation of patient demographics, at the time of index surgery, influence on pain and function at the final follow-up. 
+
+**Sponsor:** Smith & Nephew, Inc.
+
+## Participants
+
+### **Inclusion Criteria**
+
+*Treatment Arm (used REGENETEN and Bone Anchors)* 
+
+1.  ≥ 18 years of age at the time of index surgery 
+
+<!-- -->
+
+2.  Received the Collagen Implant and Bone Anchors for: 
+
+<!-- -->
+
+1.  Primary treatment for partial-thickness hip abductor tendon tear repair 
+
+<!-- -->
+
+2.  Adjunctive treatment for partial-thickness hip abductor tendon tear repair 
+
+<!-- -->
+
+3.  Adjunctive treatment for full-thickness hip abductor tendon tear repair 
+
+<!-- -->
+
+3.  A minimum elapsed post-operative time of 18-months 
+
+*Control Arm (no use of REGENETEN and Bone Anchors)* 
+
+1.  ≥ 18 years of age at the time of index surgery 
+
+<!-- -->
+
+2.  Undergone surgical treatment for the treatment of partial- or full-thickness hip abductor tendon tear without the use of REGENETEN and Bone Anchors 
+
+3.  A minimum elapsed post-operative time of 18-months 
+
+[**\*At the time of this report, there are no control cases.**]{.underline}
+
+### Exclusion Criteria
+
+1.  Patient underwent one of the following procedures simultaneously with hip abductor tendon repair: (1) total hip arthroplasty, (2) treatment for femoroacetabular impingement, and/or (3) labral repair or reconstruction 
+
+<!-- -->
+
+2.  Patient underwent an additional surgery (additional anesthesia session) during the post-operative period for the treatment of a concomitant condition that was present at the index surgery (e.g., femoroplasty for pre-existing femoroacetabular impingement) 
+
+<!-- -->
+
+3.  Patient had a neurological or cognitive disorder that would limit their ability to follow and complete post-operative rehabilitation restrictions/activities 
+
+<!-- -->
+
+4.  Patient is unwilling or unable to consent to take part in the study 
+
+## Participant Demographics and Pre-operative Diagnoses
+
+```{r}
+#| label: setup
+#| include: false
+
+library(readxl) 
+library(tidyverse) 
+library(gt)
+library(gtsummary)
+library(gtExtras) 
+library(quarto)
+
+RawDF <- read_excel("data.xlsx")
+RawDF <- RawDF %>%
+  filter(REGENETEN=='Yes')
+
+colnames(RawDF)
+
+theme_gtsummary_compact()
+```
+
+```{r}
+#| label: Demographics & Preop Diag
+#| echo: false
+#| warning: false
+
+DemoDF <-
+  RawDF %>%
+  select(c(4:10, 12:17))
+
+DemoDF <-
+  DemoDF %>%
+  mutate(across(c(1, 3), as.numeric))
+
+gtsDemo <-
+  DemoDF %>% 
+  tbl_summary( #gtSummary Table
+    by=Sex,
+    type = list(
+      c(Age, BMI) ~ 'continuous'),
+    statistic = list(all_continuous() ~ "{mean} ± {sd}"),
+    digits = all_continuous() ~ 2,
+    label = list(
+      Age ~ "Age at surgery (years)",
+      Diabetes ~ "History of Diabetes",
+      Smoker ~ "History of Smoking",
+      Steroid ~ "History of Chronic Steroid Use",
+      DX_Part_Full ~ "Type of Tear (Pre-operative)", 
+      Dx_FAI ~ "FAI", 
+      Dx_OA ~ "OA", 
+      Dx_Labral ~ "Labral Tear", 
+      Dx_LB ~ "Loose Bodies", 
+      Dx_Other ~ "Other"),
+    missing="ifany",
+    missing_text="Number of Unknowns"
+  ) %>%
+  add_p() %>%
+  add_overall %>%
+  bold_labels %>%
+  add_significance_stars(thresholds=0.05) %>%
+  italicize_levels() %>%
+  modify_table_styling(
+    columns=label,
+    footnote="BMI, body mass index; FAI, femoroacetabular impingement; OA, Osteoarthritis"
+  ) %>%
+  modify_footnote(
+    update = p.value ~ "1-way ANOVA (numerical variables, normal distribution), Kruskal-Wallis rank sum test (numerical variables, non-normal distribution); An asterisk (*) indicates significant differences among tissue types at p <0.05"
+  )
+
+gtDemo <- as_gt(gtsDemo)
+
+gtDemo <- gtDemo %>%  #Final gt output (COMPLETED 01FEB2023)
+  tab_spanner(label="Sex", columns=c(stat_2, stat_1)) %>%
+  tab_row_group(label="Demographics", rows=c(1:8)) %>%
+  tab_row_group(label="Medical History", rows=c(9:18)) %>%
+  tab_row_group(label="Pre-operative Diagnoses", rows=c(19:29)) %>%
+  row_group_order(groups=c("Demographics", "Medical History", "Pre-operative Diagnoses")) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_row_groups()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_labels()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_spanners()
+  ) %>%
+  tab_style(
+    style=cell_fill(color="#4F6FA1"),
+    locations=cells_row_groups()
+  )
+gtDemo
+
+ggplot(
+  data=RawDF,
+  mapping=(aes(
+    x=Sex,
+    y=Age
+  ))) + 
+  geom_boxplot(
+    outlier.shape=1,
+    outlier.size=2,
+    fill="#4F6FA1"
+  ) +
+  stat_boxplot(geom='errorbar') +
+  stat_summary(
+    fun.y=mean, 
+    geom="point", 
+    shape=18, 
+    size=4, 
+    color="darkred", 
+    fill="darkred",
+    position=position_dodge(0.75),
+    show.legend=FALSE
+  ) +
+  labs(
+    x="Sex",
+    y="Age at Surgery (years)",
+    caption="Distribution of Age"
+  )
+```
+
+## Intra-operative Data
+
+```{r}
+#| label: Surgical Information
+#| echo: false
+#| warning: false
+
+SurgDF <-
+  RawDF %>%
+  select(c(5, 21:29))
+
+SurgDF <- mutate(SurgDF, across(where(is.character), ~replace_na(.x, "Unknown")))
+
+SurgDF <-
+  SurgDF %>%
+  mutate(across(c(7), as.numeric))
+
+gtsSurg <-
+  SurgDF %>% 
+  tbl_summary( 
+    by=Sex,
+    type = list(
+      c(Retraction) ~ 'continuous'),
+    statistic = list(all_continuous() ~ "{mean} ± {sd}"),
+    digits = all_continuous() ~ 2,
+    label = list(
+      Open_Endo ~ "Procedure Type (Endoscopic v. Open)",
+      No_BoneA ~ "Number of Bone Anchors Used",
+      TakeDown ~ "Take Down Procedure",
+      SutureRepair ~ "Type of Suture",
+      Retraction ~ "Retraction (mm)",
+      Adjunct_Pro ~ "Adjunct Procedures Performed",
+      ITB_Length ~ "ITB Lengthening Procedure",
+      PO_DX ~ "Type of Tear (intra-operative)",
+      Percent_Tear ~ "[PLACEHOLDER] Description of Tear Severity"),
+    missing="ifany",
+    missing_text="Number of Unknowns"
+  ) %>%
+  add_p() %>%
+  add_overall %>%
+  bold_labels %>%
+  add_significance_stars(thresholds=0.05) %>%
+  italicize_levels() %>%
+  modify_table_styling(
+    columns=label,
+    footnote="ITB, Iliotibial Band"
+  ) %>%
+  modify_footnote(
+    update = p.value ~ "1-way ANOVA (numerical variables, normal distribution), Kruskal-Wallis rank sum test (numerical variables, non-normal distribution); An asterisk (*) indicates significant differences among tissue types at p <0.05"
+  )
+
+gtSurg <- as_gt(gtsSurg)
+
+gtSurg <- gtSurg %>%  
+  tab_spanner(label="Sex", columns=c(stat_2, stat_1)) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_row_groups()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_labels()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_spanners()
+  ) %>%
+  tab_style(
+    style=cell_fill(color="#4F6FA1"),
+    locations=cells_row_groups()
+  )
+gtSurg
+```
+
+## Post-operative Follow-up
+
+```{r}
+#| label: Post-Op FUs
+#| echo: false
+#| warning: false
+
+FUDF <-
+  RawDF %>%
+  select(c(1, 11, 31:39, 41:49, 51:59))
+
+FUDF <-
+  FUDF %>%
+  mutate(across(c(2, 3, 4, 12, 13, 21, 22), as.numeric))
+
+FUClean <- 
+  FUDF %>%
+  select(1:29) %>%
+  pivot_longer(
+    -Patient_ID,
+    names_to = c("Visit", ".value"),
+    names_sep="_"
+  )
+
+FUClean <-
+  FUClean %>%
+  mutate(across(everything(), str_replace, 'PreOp', 'Pre-operative')) %>%
+  mutate(across(everything(), str_replace, 'PO1', 'Post-operative #1')) %>%
+  mutate(across(everything(), str_replace, 'PO2', 'Post-operative #2')) %>%
+  mutate(across(everything(), str_replace, 'POL', 'Post-operative #3 (Final)'))
+
+FUClean <-
+  FUClean %>%
+  select(c(-1)) %>%
+  mutate(across(c(2, 3), as.numeric))
+
+gtsFU <-
+  FUClean %>% 
+  tbl_summary( #gtSummary Table
+    by=Visit,
+    type = list(
+      c(TimeTo, Pain) ~ 'continuous'),
+    statistic = list(all_continuous() ~ "{mean} ± {sd}"),
+    digits = all_continuous() ~ 2,
+    label = list(
+      TimeTo ~ "Time Between Surgery and Visit (Days)",
+      Pain ~ "VAS Pain (1-10)",
+      AE ~ "Occurence of Any Adverse Events",
+      AEDeviceR ~ "Occurence of Device-related Adverse Events",
+      Injection ~ "Pain-related Injection Change",
+      PainMedC ~ "Pain-related Medication Change",
+      PTC ~ "Pain-related Phystical Therapy Change",
+      Other ~ "Other Pain-related Change in Care",
+      CDeviceR ~ "Other Device-related Change in Care"),
+    missing="ifany",
+    missing_text="Number of Unknowns"
+  ) %>%
+  add_p() %>%
+  bold_labels %>%
+  add_significance_stars(thresholds=0.05) %>%
+  italicize_levels() %>%
+  modify_table_styling(
+    columns=label,
+    footnote="VAS Pain, Visual Analogue Scale Pain"
+  ) %>%
+  modify_footnote(
+    update = p.value ~ "1-way ANOVA (numerical variables, normal distribution), Kruskal-Wallis rank sum test (numerical variables, non-normal distribution); An asterisk (*) indicates significant differences among tissue types at p <0.05"
+  )
+
+gtFU <- as_gt(gtsFU)
+
+gtFU <- gtFU %>%
+  tab_spanner(label="Visit", columns=c(stat_4, stat_1, stat_2, stat_3)) %>%
+  tab_row_group(label="Pain and Adverse Events", rows=1:19) %>%
+  tab_row_group(label="Changes in Care", rows=10:24) %>%
+  row_group_order(groups=c("Pain and Adverse Events", "Changes in Care")) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_row_groups()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_labels()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_spanners()
+  ) %>%
+  tab_style(
+    style=cell_fill(color="#4F6FA1"),
+    locations=cells_row_groups()
+  )
+gtFU
+```
+
+## Participant Survey
+
+```{r}
+#| label: Survey Information
+#| echo: false
+#| warning: false
+
+SurveyDF <-
+  RawDF %>%
+  select(c(5, 61:69))
+
+SurveyDF <- mutate(SurveyDF, across(where(is.character), ~replace_na(.x, "Unknown")))
+
+SurveyDF <-
+  SurveyDF %>%
+  mutate(across(c(2:6, 8), as.numeric))
+
+gtsSurvey <-
+  SurveyDF %>% 
+  tbl_summary( 
+    by=Sex,
+    type = list(
+      c(Surv_TimeTo, Surv_PRest, Surv_Paverage, Surv_Pmax, Surv_Pmin, Surv_HOOSG) ~ 'continuous'),
+    statistic = list(all_continuous() ~ "{mean} ± {sd}"),
+    digits = all_continuous() ~ 2,
+    label = list(
+      Surv_TimeTo ~ "Time Between Surgery and Survey (Days)",
+      Surv_PRest ~ "VAS Pain at Rest (1-10)",
+      Surv_Paverage ~ "VAS Pain on Average (1-10)",
+      Surv_Pmax ~ "VAS Pain (Max; 1-10)",
+      Surv_Pmin ~ "VAS Pain (Min; 1-10)",
+      Surv_PS ~ "Patient Satisfaction",
+      Surv_HOOSG ~ "HOOS Global Score (0-100)",
+      Surv_AddProced ~ "Additional Procedures Completed",
+      Surv_AddInject ~ "Additional Injections Completed",
+      Surv_AddInject ~ "Device-Related Additional Procedures or Injections"),
+    missing="ifany",
+    missing_text="Number of Unknowns"
+  ) %>%
+  add_p() %>%
+  add_overall %>%
+  bold_labels %>%
+  add_significance_stars(thresholds=0.05) %>%
+  italicize_levels() %>%
+  modify_table_styling(
+    columns=label,
+    footnote="VAS Pain, Visual Analogue Scale Pain; HOOS Global Score, Hip Disability and Osteoarthritis Outcome Score "
+  ) %>%
+  modify_footnote(
+    update = p.value ~ "1-way ANOVA (numerical variables, normal distribution), Kruskal-Wallis rank sum test (numerical variables, non-normal distribution); An asterisk (*) indicates significant differences among tissue types at p <0.05"
+  )
+
+gtSurvey <- as_gt(gtsSurvey)
+
+gtSurvey <- gtSurvey %>%  
+  tab_spanner(label="Sex", columns=c(stat_2, stat_1)) %>%
+  tab_row_group(label="Pain", rows=1:5) %>%
+  tab_row_group(label="Satisfaction and Additional Procedures", rows=6:14) %>%
+  row_group_order(groups=c("Pain", "Satisfaction and Additional Procedures")) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_row_groups()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_labels()
+  ) %>%
+  tab_style(
+    style=cell_text(weight="bold"),
+    locations=cells_column_spanners()
+  ) %>%
+  tab_style(
+    style=cell_fill(color="#4F6FA1"),
+    locations=cells_row_groups()
+  )
+gtSurvey
+```
